@@ -1,6 +1,8 @@
 package com.healthcare.hms.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +37,10 @@ public class Prescription {
 
     @Column(columnDefinition = "TEXT")
     private String doctorNotes;
+
+    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PrescribedMedication> medications = new ArrayList<>();
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

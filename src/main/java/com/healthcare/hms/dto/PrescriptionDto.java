@@ -16,6 +16,5 @@ public class PrescriptionDto {
 
     private String doctorNotes;
 
-    @NotEmpty(message = "At least one medication must be prescribed")
-    private List<Long> medicationIds;
+    private List<MedicationItemDto> medications;
 }

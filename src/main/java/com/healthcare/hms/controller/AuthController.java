@@ -49,8 +49,8 @@ public class AuthController {
             return new ResponseEntity<>("Email is already taken!", HttpStatus.BAD_REQUEST);
         }
 
-        if (RoleType.ADMIN.equals(registerDto.getRole())) {
-            return new ResponseEntity<>("Cannot register an ADMIN account via this endpoint.", HttpStatus.FORBIDDEN);
+        if (registerDto.getRole() != null && registerDto.getRole() != RoleType.PATIENT) {
+            return new ResponseEntity<>("You can only register as a PATIENT. Please contact an admin to register as a DOCTOR or RECEPTIONIST.", HttpStatus.FORBIDDEN);
         }
 
         User user = new User();
@@ -59,9 +59,7 @@ public class AuthController {
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
 
-        // Default role is PATIENT if not specified
-        RoleType roleType = registerDto.getRole() != null ? registerDto.getRole() : RoleType.PATIENT;
-        user.setRole(roleType);
+        user.setRole(RoleType.PATIENT); // Always enforce PATIENT role from this public endpoint
 
         userRepository.save(user);
 
