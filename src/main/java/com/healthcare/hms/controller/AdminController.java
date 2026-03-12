@@ -11,6 +11,10 @@ import com.healthcare.hms.model.User;
 import com.healthcare.hms.repository.DepartmentRepository;
 import com.healthcare.hms.repository.MedicationRepository;
 import com.healthcare.hms.repository.UserRepository;
+import com.healthcare.hms.repository.PrescriptionRepository;
+import com.healthcare.hms.service.BillService;
+import com.healthcare.hms.model.Prescription;
+import com.healthcare.hms.model.PrescribedMedication;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +35,8 @@ public class AdminController {
     private final DepartmentRepository departmentRepository;
     private final MedicationRepository medicationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PrescriptionRepository prescriptionRepository;
+    private final BillService billService;
 
     // --- User Management ---
 
@@ -156,5 +162,18 @@ public class AdminController {
         }
         medicationRepository.deleteById(id);
         return ResponseEntity.ok("Medication deleted successfully");
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
+    @GetMapping("/appointments/{appointmentId}/bill-estimate")
+    public ResponseEntity<Double> getMedicationFeeEstimate(@PathVariable Long appointmentId) {
+        Prescription prescription = prescriptionRepository.findByAppointmentId(appointmentId).orElse(null);
+        double fee = 0.0;
+        if (prescription != null) {
+            for (PrescribedMedication pm : prescription.getMedications()) {
+                fee += pm.getMedication().getPrice() * pm.getQuantity();
+            }
+        }
+        return ResponseEntity.ok(Double.valueOf(fee));
     }
 }

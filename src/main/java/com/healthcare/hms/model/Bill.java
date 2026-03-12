@@ -37,6 +37,9 @@ public class Bill {
     private Double medicationFee;
 
     @Column(nullable = false)
+    private Double laboratoryFee;
+
+    @Column(nullable = false)
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)

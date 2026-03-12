@@ -31,7 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
-frontend
 node_modules
 api.txt
 api1.txt
+small change.md
+walkthrough.md
+medicationqty&billing.md
+/frontend/build_error.txt
+/frontend/out.txt

@@ -1,8 +1,6 @@
 package com.healthcare.hms.service;
 
-import com.healthcare.hms.dto.AppointmentRequestDto;
-import com.healthcare.hms.dto.AppointmentResponseDto;
-import com.healthcare.hms.dto.PrescriptionDto;
+import com.healthcare.hms.dto.*;
 import com.healthcare.hms.exception.ResourceNotFoundException;
 import com.healthcare.hms.model.*;
 import com.healthcare.hms.repository.*;
@@ -81,11 +79,30 @@ public class AppointmentService {
 
         prescriptionRepository.save(prescription);
 
-        if (dto.getMedicationIds() != null && !dto.getMedicationIds().isEmpty()) {
-            PatientProfile patient = appointment.getPatient();
-            List<Medication> medications = medicationRepository.findAllById(dto.getMedicationIds());
-            patient.getMedications().addAll(medications);
-            patientProfileRepository.save(patient);
+        if (dto.getMedications() != null && !dto.getMedications().isEmpty()) {
+            for (com.healthcare.hms.dto.MedicationItemDto item : dto.getMedications()) {
+                Medication medication = medicationRepository.findById(item.getMedicationId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Medication not found: " + item.getMedicationId()));
+
+                if (medication.getStockQuantity() < item.getQuantity()) {
+                    throw new RuntimeException("Insufficient stock for medication: " + medication.getName());
+                }
+
+                // Deduct stock
+                medication.setStockQuantity(medication.getStockQuantity() - item.getQuantity());
+                medicationRepository.save(medication);
+
+                // Save link with quantity
+                PrescribedMedication prescribedMedication = PrescribedMedication.builder()
+                        .prescription(prescription)
+                        .medication(medication)
+                        .quantity(item.getQuantity())
+                        .build();
+                
+                // Assuming we add a repository for PrescribedMedication or save via cascade
+                prescription.getMedications().add(prescribedMedication);
+            }
+            prescriptionRepository.save(prescription);
         }
 
         return prescription;
