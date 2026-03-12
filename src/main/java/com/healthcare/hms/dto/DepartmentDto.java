@@ -1,0 +1,20 @@
+package com.healthcare.hms.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class DepartmentDto {
+    private Long id;
+
+    @NotBlank(message = "Department name is required")
+    private String name;
+
+    private String description;
+}
