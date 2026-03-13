@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface BillRepository extends JpaRepository<Bill, Long> {
     List<Bill> findByAppointmentPatientUserId(Long patientUserId);
+    
+    java.util.Optional<Bill> findByAppointmentId(Long appointmentId);
 }

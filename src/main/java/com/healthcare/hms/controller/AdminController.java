@@ -17,6 +17,7 @@ import com.healthcare.hms.model.Prescription;
 import com.healthcare.hms.model.PrescribedMedication;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +30,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@Slf4j
 public class AdminController {
 
     private final UserRepository userRepository;
@@ -131,14 +133,21 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/medications")
     public ResponseEntity<?> addMedication(@Valid @RequestBody MedicationDto dto) {
-        Medication medication = Medication.builder()
-                .name(dto.getName())
-                .manufacturer(dto.getManufacturer())
-                .price(dto.getPrice())
-                .stockQuantity(dto.getStockQuantity())
-                .build();
-        medicationRepository.save(medication);
-        return new ResponseEntity<>(medication, HttpStatus.CREATED);
+        log.info("Request to add medication: {}", dto.getName());
+        try {
+            Medication medication = Medication.builder()
+                    .name(dto.getName())
+                    .manufacturer(dto.getManufacturer())
+                    .price(dto.getPrice())
+                    .stockQuantity(dto.getStockQuantity())
+                    .build();
+            medicationRepository.save(medication);
+            log.info("Medication added successfully: {}", medication.getId());
+            return new ResponseEntity<>(medication, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.error("Failed to add medication: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")

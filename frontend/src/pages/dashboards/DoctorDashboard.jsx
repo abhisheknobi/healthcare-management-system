@@ -419,7 +419,7 @@ const DoctorDashboard = () => {
                                                             max={item.stock}
                                                             value={item.quantity}
                                                             onChange={(e) => {
-                                                                const val = Math.max(1, parseInt(e.target.value) || 1);
+                                                                const val = e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1);
                                                                 setPrescribedItems(prescribedItems.map(i => 
                                                                     i.medicationId === item.medicationId ? { ...i, quantity: val } : i
                                                                 ));

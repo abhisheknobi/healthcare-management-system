@@ -1,6 +1,7 @@
 package com.healthcare.hms.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,7 @@ public class Medication {
 
     private Integer stockQuantity;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "medications")
     private Set<PatientProfile> patients = new HashSet<>();
 
@@ -55,4 +57,15 @@ public class Medication {
 
     @LastModifiedBy
     private Long lastModifiedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (updatedAt == null) updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

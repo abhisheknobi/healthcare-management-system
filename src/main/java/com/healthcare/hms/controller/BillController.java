@@ -1,6 +1,7 @@
 package com.healthcare.hms.controller;
 
 import com.healthcare.hms.dto.BillDto;
+import com.healthcare.hms.dto.BillResponseDto;
 import com.healthcare.hms.model.Bill;
 import com.healthcare.hms.security.CustomUserDetails;
 import com.healthcare.hms.service.BillService;
@@ -22,19 +23,25 @@ public class BillController {
 
     @PostMapping("/appointment/{appointmentId}")
     @PreAuthorize("hasRole('RECEPTIONIST') or hasRole('ADMIN')")
-    public ResponseEntity<Bill> generateBill(@PathVariable Long appointmentId, @Valid @RequestBody BillDto billDto) {
+    public ResponseEntity<BillResponseDto> generateBill(@PathVariable Long appointmentId, @Valid @RequestBody BillDto billDto) {
         return ResponseEntity.ok(billService.generateBill(appointmentId, billDto));
     }
 
     @PutMapping("/{billId}/pay")
     @PreAuthorize("hasRole('RECEPTIONIST') or hasRole('PATIENT')")
-    public ResponseEntity<Bill> payBill(@PathVariable Long billId) {
+    public ResponseEntity<BillResponseDto> payBill(@PathVariable Long billId) {
         return ResponseEntity.ok(billService.payBill(billId));
     }
 
     @GetMapping("/patient")
     @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<List<Bill>> getMyBills(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<BillResponseDto>> getMyBills(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(billService.getPatientBills(userDetails.getUser().getId()));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<List<BillResponseDto>> getAllBills() {
+        return ResponseEntity.ok(billService.getAllBills());
     }
 }

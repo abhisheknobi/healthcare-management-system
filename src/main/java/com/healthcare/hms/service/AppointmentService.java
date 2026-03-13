@@ -1,6 +1,8 @@
 package com.healthcare.hms.service;
 
 import com.healthcare.hms.dto.*;
+import com.healthcare.hms.dto.PrescriptionResponseDto;
+import com.healthcare.hms.dto.PrescribedMedicationResponseDto;
 import com.healthcare.hms.exception.ResourceNotFoundException;
 import com.healthcare.hms.model.*;
 import com.healthcare.hms.repository.*;
@@ -63,7 +65,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public Prescription addPrescription(Long appointmentId, PrescriptionDto dto) {
+    public PrescriptionResponseDto addPrescription(Long appointmentId, PrescriptionDto dto) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
@@ -71,13 +73,28 @@ public class AppointmentService {
             throw new RuntimeException("Can only add prescription to COMPLETED appointments");
         }
 
-        Prescription prescription = Prescription.builder()
-                .appointment(appointment)
-                .diagnosis(dto.getDiagnosis())
-                .doctorNotes(dto.getDoctorNotes())
-                .build();
+        // Check for existing prescription to handle UPSERT
+        Prescription prescription = prescriptionRepository.findByAppointmentId(appointmentId)
+                .orElse(new Prescription());
 
-        prescriptionRepository.save(prescription);
+        if (prescription.getId() != null) {
+            // Use a copy of the list to avoid ConcurrentModificationException if modifying during iteration
+            List<PrescribedMedication> existingMeds = new java.util.ArrayList<>(prescription.getMedications());
+            for (PrescribedMedication pm : existingMeds) {
+                Medication med = pm.getMedication();
+                med.setStockQuantity(med.getStockQuantity() + pm.getQuantity());
+                medicationRepository.save(med);
+            }
+            prescription.getMedications().clear();
+        } else {
+            prescription.setAppointment(appointment);
+        }
+
+        prescription.setDiagnosis(dto.getDiagnosis());
+        prescription.setDoctorNotes(dto.getDoctorNotes());
+
+        // Save prescription first if it's new, otherwise ensure it's tracked
+        prescription = prescriptionRepository.save(prescription);
 
         if (dto.getMedications() != null && !dto.getMedications().isEmpty()) {
             for (com.healthcare.hms.dto.MedicationItemDto item : dto.getMedications()) {
@@ -99,13 +116,34 @@ public class AppointmentService {
                         .quantity(item.getQuantity())
                         .build();
                 
-                // Assuming we add a repository for PrescribedMedication or save via cascade
                 prescription.getMedications().add(prescribedMedication);
             }
-            prescriptionRepository.save(prescription);
+            prescription = prescriptionRepository.save(prescription);
         }
 
-        return prescription;
+        return mapToPrescriptionDto(prescription);
+    }
+
+    private PrescriptionResponseDto mapToPrescriptionDto(Prescription prescription) {
+        List<PrescribedMedicationResponseDto> medicationDtos = prescription.getMedications().stream()
+                .map(pm -> PrescribedMedicationResponseDto.builder()
+                        .id(pm.getId())
+                        .medicationId(pm.getMedication().getId())
+                        .medicationName(pm.getMedication().getName())
+                        .quantity(pm.getQuantity())
+                        .priceAtPrescription(pm.getMedication().getPrice())
+                        .build())
+                .toList();
+
+        return PrescriptionResponseDto.builder()
+                .id(prescription.getId())
+                .appointmentId(prescription.getAppointment().getId())
+                .diagnosis(prescription.getDiagnosis())
+                .doctorNotes(prescription.getDoctorNotes())
+                .medications(medicationDtos)
+                .createdAt(prescription.getCreatedAt())
+                .updatedAt(prescription.getUpdatedAt())
+                .build();
     }
 
     public List<AppointmentResponseDto> getDoctorAppointments(Long doctorUserId) {

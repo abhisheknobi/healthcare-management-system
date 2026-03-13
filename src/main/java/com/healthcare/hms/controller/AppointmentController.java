@@ -3,6 +3,7 @@ package com.healthcare.hms.controller;
 import com.healthcare.hms.dto.AppointmentRequestDto;
 import com.healthcare.hms.dto.AppointmentResponseDto;
 import com.healthcare.hms.dto.PrescriptionDto;
+import com.healthcare.hms.dto.PrescriptionResponseDto;
 import com.healthcare.hms.model.Appointment;
 import com.healthcare.hms.model.AppointmentStatus;
 import com.healthcare.hms.model.Prescription;
@@ -57,7 +58,7 @@ public class AppointmentController {
 
     @PostMapping("/{id}/prescriptions")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<Prescription> addPrescription(
+    public ResponseEntity<PrescriptionResponseDto> addPrescription(
             @PathVariable Long id,
             @Valid @RequestBody PrescriptionDto dto) {
         return ResponseEntity.ok(appointmentService.addPrescription(id, dto));

@@ -36,8 +36,9 @@ public class Bill {
     @Column(nullable = false)
     private Double medicationFee;
 
-    @Column(nullable = false)
-    private Double laboratoryFee;
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "double precision default 0.0")
+    private Double laboratoryFee = 0.0;
 
     @Column(nullable = false)
     private Double totalAmount;

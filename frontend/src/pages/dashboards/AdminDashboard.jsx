@@ -90,6 +90,34 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleCreateMed = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            await api.post('/admin/medications', newMed);
+            showToast('Medication added successfully!');
+            setShowAddMedModal(false);
+            setNewMed({ name: '', manufacturer: '', price: '', stockQuantity: '' });
+            const res = await api.get('/admin/medications').catch(() => ({ data: [] }));
+            setMedicationsList(res.data);
+        } catch (err) {
+            showToast(err.response?.data?.message || err.response?.data || 'Failed to add medication', 'error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteMed = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this medication?')) return;
+        try {
+            await api.delete(`/admin/medications/${id}`);
+            showToast('Medication deleted successfully!');
+            setMedicationsList(medicationsList.filter(m => m.id !== id));
+        } catch (err) {
+            showToast(err.response?.data?.message || err.response?.data || 'Failed to delete medication', 'error');
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -526,12 +554,12 @@ const AdminDashboard = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Price (₹)</label>
-                                        <input type="number" step="0.01" required value={newMed.price} onChange={e => setNewMed({ ...newMed, price: parseFloat(e.target.value) })}
+                                        <input type="number" step="0.01" required value={newMed.price} onChange={e => setNewMed({ ...newMed, price: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                             className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Initial Stock</label>
-                                        <input type="number" required value={newMed.stockQuantity} onChange={e => setNewMed({ ...newMed, stockQuantity: parseInt(e.target.value) })}
+                                        <input type="number" required value={newMed.stockQuantity} onChange={e => setNewMed({ ...newMed, stockQuantity: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                             className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all" />
                                     </div>
                                 </div>
