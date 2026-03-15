@@ -1,0 +1,38 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# IDEs and OS
+.idea/
+.workspace
+.vscode/
+*.swp
+*.iml
+*.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Misc
+HELP.md
+Readme.md
+api.txt
+api1.txt
+small change.md
+walkthrough.md
+mvnw
+mvnw.cmd
+.mvn/

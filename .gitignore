@@ -39,4 +39,4 @@ walkthrough.md
 medicationqty&billing.md
 /frontend/build_error.txt
 /frontend/out.txt
-/src/main/resources/application.properties
+/src/main/resources/application-local.properties
